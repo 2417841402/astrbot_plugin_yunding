@@ -402,8 +402,8 @@ class YundingPlugin(Star):
     ) -> str:
         """查询云顶之弈（TFT）数据。action 取值: "lineups"=当前版本推荐阵容列表; "lineup"=按关键词查阵容详情（构成/装备/羁绊/运营）; "hero"=按名字查弈子费用/羁绊/技能; "equip"=查装备效果与合成; "trait"=查羁绊各级效果。
         Args:
-            action: 查询类型，可选 lineups / lineup / hero / equip / trait
-            keyword: 阵容、弈子、装备或羁绊名称；action 为 lineups 时留空
+            action(string): 查询类型，可选 lineups / lineup / hero / equip / trait
+            keyword(string): 阵容、弈子、装备或羁绊名称；action 为 lineups 时留空
         """
         try:
             if action == "lineups":
