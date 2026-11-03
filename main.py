@@ -394,6 +394,115 @@ class YundingPlugin(Star):
     async def yunding_help(self, event: AstrMessageEvent):
         yield event.plain_result(self._help_text())
 
+    # ---------------- llm tool ----------------
+
+    @filter.llm_tool(name="yunding_query")
+    async def yunding_query(
+        self, event: AstrMessageEvent, action: str, keyword: str = ""
+    ) -> str:
+        """查询云顶之弈（TFT）数据。action 取值: "lineups"=当前版本推荐阵容列表; "lineup"=按关键词查阵容详情（构成/装备/羁绊/运营）; "hero"=按名字查弈子费用/羁绊/技能; "equip"=查装备效果与合成; "trait"=查羁绊各级效果。
+        Args:
+            action: 查询类型，可选 lineups / lineup / hero / equip / trait
+            keyword: 阵容、弈子、装备或羁绊名称；action 为 lineups 时留空
+        """
+        try:
+            if action == "lineups":
+                lineups = await self._get_lineups()
+                top_n = int(self.config.get("lineup_top_n", 24))
+                lines = [f"云顶 {self._get_season_label()} 推荐阵容："]
+                for comp in lineups[:top_n]:
+                    try:
+                        det = json.loads(comp.get("detail", "{}"), strict=False)
+                    except Exception:
+                        det = {}
+                    lines.append(
+                        f"- {self._lineup_name(comp)}"
+                        f"（质量{comp.get('quality', '?')}，{det.get('needLevel', '?')}级成型）"
+                    )
+                return "\n".join(lines)
+            if action == "lineup":
+                lineups = await self._get_lineups()
+                comp = self._find_lineup(lineups, keyword)
+                if not comp:
+                    names = "、".join(self._lineup_name(x) for x in lineups[:8])
+                    return f"没找到阵容「{keyword}」。当前阵容：{names} 等"
+                det = json.loads(comp.get("detail", "{}"), strict=False)
+                chess = await self._chess_map()
+                equip = await self._equip_map()
+                traits = await self._trait_map()
+                unit_lines, trait_count = [], {}
+                for h in det.get("hero_location", []):
+                    u = await self._resolve_unit(h, chess)
+                    e_names = [
+                        e.get("name", "")
+                        for e in await self._equip_entries(u["equip_ids"], equip)
+                    ]
+                    star = "★" * u["star"] if u["star"] >= 2 else ""
+                    carry = "（C位）" if u["carry"] else ""
+                    eq = f" 装备：{'/'.join(e_names)}" if e_names else ""
+                    unit_lines.append(f"- {u['name']} {u['price']}费{star}{carry}{eq}")
+                    chess_e = chess.get(u["hero_id"]) or chess.get(
+                        self._hero_key(u["hero_id"])
+                    )
+                    if chess_e:
+                        for t in await self._unit_traits(chess_e, traits):
+                            trait_count[t] = trait_count.get(t, 0) + 1
+                chips = "、".join(
+                    f"{k}x{v}"
+                    for k, v in sorted(trait_count.items(), key=lambda x: -x[1])[:8]
+                )
+                order = await self._equip_entries(
+                    [x for x in str(det.get("equipment_order", "")).split(",") if x],
+                    equip,
+                )
+                parts = [
+                    f"【{self._lineup_name(comp)}】质量{comp.get('quality', '')}，"
+                    f"{det.get('needLevel', '?')}级成型（中期 {det.get('needLevel_middle', '?')}级）",
+                    "构成：\n" + "\n".join(unit_lines),
+                    f"羁绊：{chips}",
+                ]
+                if order:
+                    parts.append(
+                        "装备优先级：" + " → ".join(e.get("name", "") for e in order)
+                    )
+                for label, key in (
+                    ("海克斯", "hex_info"),
+                    ("运营要点", "location_info"),
+                ):
+                    txt = self._clean_text(det.get(key, ""))
+                    if txt:
+                        parts.append(f"{label}：{txt[:180]}")
+                return "\n".join(parts)
+            if action == "hero":
+                chess = await self._get_static("chess")
+                hit = self._find_chess(chess.get("data", []), keyword)
+                if not hit:
+                    return f"没找到弈子「{keyword}」（当前赛季 {self._get_season_label()}）"
+                traits = await self._trait_map()
+                tnames = await self._unit_traits(hit, traits)
+                skill = self._clean_text(hit.get("skillIntroduce", ""))
+                return (
+                    f"{hit.get('displayName', keyword)}：{hit.get('price', '?')}费，"
+                    f"羁绊 {'/'.join(tnames)}。技能：{hit.get('skillName', '')}——{skill[:150]}"
+                )
+            if action == "equip":
+                equip = await self._get_static("equip")
+                hit = self._find_equip(equip.get("data", []), keyword)
+                if not hit:
+                    return f"没找到装备「{keyword}」"
+                des = self._clean_text(hit.get("effect", ""))
+                return f"{hit.get('name', keyword)}：{des[:200]}"
+            if action == "trait":
+                hit = await self._find_trait(keyword)
+                if not hit:
+                    return f"没找到羁绊「{keyword}」（当前赛季 {self._get_season_label()}）"
+                des = self._clean_text(hit.get("introduce", ""))
+                return f"羁绊 {hit.get('name', keyword)}：{des[:250]}"
+            return "action 只支持 lineups / lineup / hero / equip / trait"
+        except Exception as e:
+            logger.error(f"yunding llm_tool: {self._exc()}")
+            return f"查询失败: {e}"
+
     async def _dispatch_lineup(self, event: AstrMessageEvent, query: str):
         try:
             lineups = await self._get_lineups()
