@@ -221,12 +221,12 @@ def render_lineup_detail(
         color = COST_COLORS.get(u["price"], COST_COLORS[1])
         icon = _load_icon(u.get("icon"), unit_size)
         _paste_icon(img, icon, x, row_y, unit_size, border=color)
-        # Cost badge (top-left) and star/carry badges (top-right).
+        # Cost badge (top-left, prominent) and star/carry badges (top-right).
         cb = str(u["price"])
-        f_cb = _font(14, medium=True)
-        d.rectangle([x, row_y, x + 18, row_y + 18], fill=color)
+        f_cb = _font(17, medium=True)
+        d.rectangle([x, row_y, x + 26, row_y + 26], fill=color)
         tw = d.textlength(cb, font=f_cb)
-        d.text((x + (18 - tw) / 2, row_y + 1), cb, font=f_cb, fill=(15, 18, 24))
+        d.text((x + (26 - tw) / 2, row_y + 3), cb, font=f_cb, fill=(15, 18, 24))
         # Only mark stars for 2+ (the lineup data marks 1 for units that stay one-star);
         # "C" marks the carry.
         marks = ("★" * min(u["star"], 3) if u["star"] > 1 else "") + (
