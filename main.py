@@ -145,6 +145,7 @@ class YundingPlugin(Star):
         cached = await self._cache_get("lineups", LINEUP_TTL)
         if cached is not None:
             return cached
+        await self._get_static("chess")
         override = str(self.config.get("lineup_path", "") or "").strip().strip("/")
         season = re.search(r"S(\d+)", self._get_season_label())
         sn = season.group(1) if season else "18"
@@ -170,6 +171,7 @@ class YundingPlugin(Star):
         cached = await self._cache_get("chess_map", STATIC_TTL)
         if cached is not None:
             return cached
+        await self._get_static("chess")
         mapping: dict[str, dict] = {}
         for e in self._static_list("chess"):
             en = str(e.get("hero_EN_name", "")).strip()
@@ -188,6 +190,7 @@ class YundingPlugin(Star):
         cached = await self._cache_get("equip_map", STATIC_TTL)
         if cached is not None:
             return cached
+        await self._get_static("equip")
         mapping = {}
         for e in self._static_list("equip"):
             for k in (e.get("englishName"), e.get("equipId")):
@@ -201,6 +204,8 @@ class YundingPlugin(Star):
         cached = await self._cache_get("trait_map", STATIC_TTL)
         if cached is not None:
             return cached
+        for name in ("race", "job"):
+            await self._get_static(name)
         mapping = {}
         for name in ("race", "job"):
             for e in self._static_list(name):
