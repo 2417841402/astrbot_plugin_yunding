@@ -58,7 +58,7 @@ PLACEHOLDER_RE = re.compile(r"%i:([a-zA-Z]+)(?:\[([^\]]+)\])?%")
     "astrbot_plugin_yunding",
     "Matsuko",
     "云顶之弈查询：官方阵容库推荐、弈子详情、装备合成、羁绊效果（数据来自腾讯官方资料库）",
-    "1.0.0",
+    "1.1.0",
 )
 class YundingPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):

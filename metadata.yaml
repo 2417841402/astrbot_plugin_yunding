@@ -8,7 +8,8 @@ desc: |
   - /云顶英雄 茂凯 —— 弈子费用、羁绊、技能、属性
   - /云顶装备 无尽之刃 —— 装备效果与合成公式
   - /云顶羁绊 魔战士 —— 羁绊各级效果
-version: 1.0.0
+  - 支持 LLM 工具调用，对话中直接问即可（如"这版本玩什么阵容"）
+version: 1.1.0
 author: "2417841402"
 repo: https://github.com/2417841402/astrbot_plugin_yunding
 astrbot_version: ">=4.17.0"
