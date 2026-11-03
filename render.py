@@ -227,7 +227,11 @@ def render_lineup_detail(
         d.rectangle([x, row_y, x + 18, row_y + 18], fill=color)
         tw = d.textlength(cb, font=f_cb)
         d.text((x + (18 - tw) / 2, row_y + 1), cb, font=f_cb, fill=(15, 18, 24))
-        marks = "★" * min(u["star"], 3) + ("C" if u["carry"] else "")
+        # Only mark stars for 2+ (the lineup data marks 1 for units that stay one-star);
+        # "C" marks the carry.
+        marks = ("★" * min(u["star"], 3) if u["star"] > 1 else "") + (
+            "C" if u["carry"] else ""
+        )
         if marks:
             f_mk = _font(14, medium=True)
             d.text(
