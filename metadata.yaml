@@ -1,0 +1,18 @@
+name: astrbot_plugin_yunding
+display_name: 云顶之弈查询
+desc: |
+  云顶之弈（TFT）查询插件，数据来自腾讯官方资料库（game.gtimg.cn）。
+  功能：
+  - /云顶 —— 当前版本官方推荐阵容列表（含评级、作者、成型等级）
+  - /云顶 巨龙 —— 阵容详情：成员、装备、海克斯、前期过渡、站位思路
+  - /云顶英雄 茂凯 —— 弈子费用、羁绊、技能、属性
+  - /云顶装备 无尽之刃 —— 装备效果与合成公式
+  - /云顶羁绊 魔战士 —— 羁绊各级效果
+version: 1.0.0
+author: "2417841402"
+repo: https://github.com/2417841402/astrbot_plugin_yunding
+astrbot_version: ">=4.17.0"
+support_platforms:
+  - aiocqhttp
+tags:
+  - game

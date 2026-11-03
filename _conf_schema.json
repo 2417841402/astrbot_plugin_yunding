@@ -1,0 +1,17 @@
+{
+  "timeout": {
+    "description": "HTTP 请求超时（秒）",
+    "type": "int",
+    "default": 25
+  },
+  "lineup_top_n": {
+    "description": "阵容列表最多显示多少套",
+    "type": "int",
+    "default": 24
+  },
+  "lineup_path": {
+    "description": "阵容库路径覆盖（如 s18/6），留空则自动探测最新赛季版本",
+    "type": "string",
+    "default": ""
+  }
+}
