@@ -179,15 +179,9 @@ class YundingPlugin(Star):
         self._cache_set("chess_map", mapping, STATIC_TTL)
         return mapping
 
-    def _avatar_url(self, hero_id: str) -> str:
-        """Build the unit avatar URL from the lineup hero id (e.g. DA_18_Maokai)."""
-        m = re.search(r"S(\d+)", self._get_season_label())
-        set_no = m.group(1) if m else "18"
-        key = self._hero_key(hero_id)
-        return (
-            f"https://game.gtimg.cn/images/lol/act/img/tft/original-image/"
-            f"tft{set_no}_{key}_square.tft_set{set_no}.png"
-        )
+    def _avatar_url(self, chess_id) -> str:
+        """Build the champion portrait URL from the chess id (e.g. 100367)."""
+        return f"https://game.gtimg.cn/images/lol/act/img/tft/champions/{chess_id}.png"
 
     async def _equip_map(self) -> dict[str, dict]:
         """englishName (e.g. 'DA_Component_RecurveBow') -> equip entry."""
@@ -247,7 +241,7 @@ class YundingPlugin(Star):
             "star": int(hero_entry.get("numStar", 1) or 1),
             "carry": bool(hero_entry.get("is_carry_hero")),
             "equip_ids": equip_ids,
-            "icon_url": self._avatar_url(hid),
+            "icon_url": self._avatar_url((chess_e or {}).get("chessId", "")),
         }
 
     @staticmethod
@@ -569,10 +563,9 @@ class YundingPlugin(Star):
     async def _hero_card(self, chess_e: dict) -> Path:
         traits = await self._trait_map()
         trait_names = await self._unit_traits(chess_e, traits)
-        en_name = str(chess_e.get("hero_EN_name", "")).strip()
         portrait_url = (
-            self._avatar_url(en_name)
-            if en_name
+            self._avatar_url(chess_e.get("chessId", ""))
+            if chess_e.get("chessId")
             else str(chess_e.get("imagePath", "") or "")
         )
         portrait = await self._download_icon(portrait_url)
